@@ -29,7 +29,8 @@ namespace Lexer {
 
 				// Check if the word is a keyword or identifier
                 std::vector<std::string> keywords = {
-                    "if", "else", "while", "return", "for", "function", "number", "word"
+					"if", "else", "while", "return", "for", "function", "number", "word", "boolean", "true", "false", "null", "const", "break"
+					, "continue", "main", "print", "input", "or", "and", "not"
                 };
 
 				// Check if the word is in the list of keywords
