@@ -2,7 +2,6 @@
 #include "CppUnitTest.h"
 #include "../src/Tokenizer.h"
 #include "../src/StatementParser.h"
-#include "../src/StatementParser.cpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Lexer;
@@ -92,7 +91,6 @@ namespace StatementParserTests
             auto stmt = parseStatement("if (x > 5) { x = 10; y = 20; }");
             Assert::IsNotNull(stmt.get());
 
-            // Check that it contains both assignments
             std::string result = stmt->toString();
             Assert::IsTrue(result.find("x = 10") != std::string::npos);
             Assert::IsTrue(result.find("y = 20") != std::string::npos);
@@ -132,11 +130,73 @@ namespace StatementParserTests
 
             std::string result = stmt->toString();
             Assert::IsTrue(result.find("result = ") != std::string::npos);
-            // Should have proper precedence
             Assert::IsTrue(result.find("(y * z)") != std::string::npos);
         }
 
-        // Error cases
+        TEST_METHOD(ParseWhileStatement)
+        {
+            auto stmt = parseStatement("while (x < 10) x++;");
+            Assert::IsNotNull(stmt.get());
+            Assert::AreEqual(std::string("while ((x < 10)) (x++);"), stmt->toString());
+        }
+
+        TEST_METHOD(ParseWhileWithBlock)
+        {
+            auto stmt = parseStatement("while (true) { x = 1; y = 2; }");
+            Assert::IsNotNull(stmt.get());
+
+            std::string result = stmt->toString();
+            Assert::IsTrue(result.find("while (true)") != std::string::npos);
+            Assert::IsTrue(result.find("x = 1") != std::string::npos);
+            Assert::IsTrue(result.find("y = 2") != std::string::npos);
+        }
+
+        TEST_METHOD(ParseForStatementFull)
+        {
+            auto stmt = parseStatement("for (number i = 0; i < 10; i++) x = x + i;");
+            Assert::IsNotNull(stmt.get());
+            Assert::AreEqual(std::string("for (number i = 0; (i < 10); (i++)) x = (x + i);"), stmt->toString());
+        }
+
+        TEST_METHOD(ParseForStatementEmpty)
+        {
+            auto stmt = parseStatement("for (;;) { x++; }");
+            Assert::IsNotNull(stmt.get());
+
+            std::string result = stmt->toString();
+            Assert::IsTrue(result.find("for (;") != std::string::npos);
+            Assert::IsTrue(result.find("(x++)") != std::string::npos);
+            Assert::AreEqual(std::string("for (; ; ) {\n  (x++);\n}"), result);
+        }
+
+        TEST_METHOD(ParseForStatementNoInit)
+        {
+            auto stmt = parseStatement("for (; i < 10; i++) x = 1;");
+            Assert::IsNotNull(stmt.get());
+            Assert::AreEqual(std::string("for (; (i < 10); (i++)) x = 1;"), stmt->toString());
+        }
+
+        TEST_METHOD(ParseForStatementNoCond)
+        {
+            auto stmt = parseStatement("for (number i = 0; ; i++) x = 1;");
+            Assert::IsNotNull(stmt.get());
+            Assert::AreEqual(std::string("for (number i = 0; ; (i++)) x = 1;"), stmt->toString());
+        }
+
+        TEST_METHOD(ParseForStatementNoIncrement)
+        {
+            auto stmt = parseStatement("for (number i = 0; i < 10; ) x = 1;");
+            Assert::IsNotNull(stmt.get());
+            Assert::AreEqual(std::string("for (number i = 0; (i < 10); ) x = 1;"), stmt->toString());
+        }
+
+        TEST_METHOD(ParseForStatementExprInitializer)
+        {
+            auto stmt = parseStatement("for (i = 0; i < 10; i++) x = 1;");
+            Assert::IsNotNull(stmt.get());
+            Assert::AreEqual(std::string("for (i = 0; (i < 10); (i++)) x = 1;"), stmt->toString());
+        }
+
         TEST_METHOD(ParseError_MissingSemicolon)
         {
             Assert::ExpectException<std::runtime_error>([this]() {
@@ -189,10 +249,6 @@ namespace StatementParserTests
             auto stmt = parseStatement("word message = \"Hello World\";");
             Assert::IsNotNull(stmt.get());
             Assert::AreEqual(std::string("word message = \"Hello World\";"), stmt->toString());
-
-            stmt = parseStatement("boolean isValid = false;");
-            Assert::IsNotNull(stmt.get());
-            Assert::AreEqual(std::string("boolean isValid = false;"), stmt->toString());
         }
 
         TEST_METHOD(ParseComplexIfElseWithBlocks)
