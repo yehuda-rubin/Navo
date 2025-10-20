@@ -109,19 +109,14 @@ namespace AST {
             return "(" + operator_ + " " + operand->toString() + ")";
         }
     };
-
-    // Pre-increment/decrement (++x, --x)
-    class PreIncrementOperation : public Expression {
+    class PostIncrement : public Expression {
     public:
         std::string operator_;  // "++" ае "--"
         std::string variable;
-
-        PreIncrementOperation(const std::string& op, const std::string& var)
-            : operator_(op), variable(var) {
-        }
-
+        std::string op;
+        PostIncrement(const std::string& v, const std::string& o) : variable(v), op(o) {}
         std::string toString() const override {
-            return "(" + operator_ + variable + ")";
+            return "(" + variable + op + ")";
         }
     };
 
@@ -167,13 +162,11 @@ namespace AST {
     public:
         std::string variable;
         ExpressionPtr value;
-
-        AssignmentStatement(const std::string& var, ExpressionPtr val)
-            : variable(var), value(std::move(val)) {
+        Assignment(const std::string& n, ExpressionPtr v)
+            : name(n), value(std::move(v)) {
         }
-
         std::string toString() const override {
-            return variable + " = " + value->toString() + ";";
+            return name + " = " + value->toString() + ";";
         }
     };
 
@@ -255,12 +248,10 @@ namespace AST {
         return std::make_unique<UnaryOperation>(op, std::move(operand));
     }
 
-    inline ExpressionPtr makePreIncrement(const std::string& op, const std::string& var) {
-        return std::make_unique<PreIncrementOperation>(op, var);
-    }
 
-    inline ExpressionPtr makePostIncrement(const std::string& var, const std::string& op) {
-        return std::make_unique<PostIncrementOperation>(var, op);
+    // --- 7. STATEMENT FACTORIES ---
+    inline StatementPtr makeVariableDeclaration(const std::string& t, const std::string& n, ExpressionPtr i) {
+        return std::make_unique<VariableDeclaration>(t, n, std::move(i));
     }
 
     inline ExpressionPtr makeString(const std::string& value) {

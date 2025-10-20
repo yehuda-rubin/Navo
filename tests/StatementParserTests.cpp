@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 #include "../src/Tokenizer.h"
 #include "../src/StatementParser.h"
+#include "../src/StatementParser.cpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Lexer;
@@ -13,6 +14,7 @@ namespace StatementParserTests
     TEST_CLASS(StatementParserTests)
     {
     private:
+        // Helper for single-statement tests
         std::unique_ptr<Statement> parseStatement(const std::string& input) {
             auto tokens = tokenize(input);
             StatementParser parser(tokens);
