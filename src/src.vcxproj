@@ -125,11 +125,14 @@
   <ItemGroup>
     <ClInclude Include="AST.h" />
     <ClInclude Include="ExpressionParser.h" />
+    <ClInclude Include="StatementAST.h" />
+    <ClInclude Include="StatementParser.h" />
     <ClInclude Include="Tokenizer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ExpressionParser.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="StatementParser.cpp" />
     <ClCompile Include="Tokenizer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

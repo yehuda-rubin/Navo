@@ -3,14 +3,18 @@
 
 namespace Parser {
 
+	// Constructor
     ExpressionParser::ExpressionParser(const std::vector<Lexer::Token>& tokens)
         : tokens(tokens), current(0) {
     }
 
+	// Helper methods
+	// Check if we've consumed all tokens
     bool ExpressionParser::isAtEnd() const {
         return current >= tokens.size();
     }
 
+	// Look at the current token without consuming it
     Lexer::Token ExpressionParser::peek() const {
         if (isAtEnd()) {
             return Lexer::Token(Lexer::TokenType::Unknown, "");
@@ -18,6 +22,7 @@ namespace Parser {
         return tokens[current];
     }
 
+	// Look at the last consumed token
     Lexer::Token ExpressionParser::previous() const {
         if (current == 0) {
             return Lexer::Token(Lexer::TokenType::Unknown, "");
@@ -25,11 +30,13 @@ namespace Parser {
         return tokens[current - 1];
     }
 
+	// Check if the current token matches a type
     bool ExpressionParser::check(Lexer::TokenType type) const {
         if (isAtEnd()) return false;
         return peek().type == type;
     }
 
+	// Check and consume if the current token matches a specific value
     bool ExpressionParser::match(const std::string& value) {
         if (!isAtEnd() && peek().value == value) {
             advance();
@@ -38,16 +45,20 @@ namespace Parser {
         return false;
     }
 
+	// Consume the current token and return it
     Lexer::Token ExpressionParser::advance() {
         if (!isAtEnd()) current++;
         return previous();
     }
 
+	// Consume a token of a specific type or throw an error
     Lexer::Token ExpressionParser::consume(Lexer::TokenType type, const std::string& message) {
+		// If the current token matches the expected type, consume and return it
         if (check(type)) {
             return advance();
         }
 
+		// Otherwise, throw an error with a descriptive message
         std::string error = message + ". Got: ";
         if (!isAtEnd()) {
             error += "'" + peek().value + "'";
@@ -191,6 +202,7 @@ namespace Parser {
 
     // Primary ::= Number | Identifier | Boolean | '(' Expression ')'
     AST::ExpressionPtr ExpressionParser::primary() {
+		// Handle boolean literals
         if (match("true")) {
             return AST::makeBoolean(true);
         }
@@ -198,6 +210,7 @@ namespace Parser {
             return AST::makeBoolean(false);
         }
 
+		// Handle numbers and identifiers
         if (check(Lexer::TokenType::Number)) {
             advance();
             return AST::makeNumber(previous().value);
@@ -208,6 +221,12 @@ namespace Parser {
             return AST::makeIdentifier(previous().value);
         }
 
+        if (check(Lexer::TokenType::String)) {
+            advance();
+            return AST::makeString(previous().value);
+        }
+
+		// Handle parenthesized expressions
         if (match("(")) {
             auto expr = expression();
             if (!match(")")) {
